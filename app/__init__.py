@@ -27,15 +27,22 @@ init_error(app)     # Handle errors and exceptions
 #-----------------------------------------------------------
 @app.get("/")
 def index():
-    return render_template("pages/home.jinja")
+    with connect_db() as client:
+        # Get all the tasks from the DB
+        sql = """
+            SELECT tasks.id,
+                   tasks.name
 
 
-#-----------------------------------------------------------
-# About page route
-#-----------------------------------------------------------
-@app.get("/about/")
-def about():
-    return render_template("pages/about.jinja")
+            FROM tasks
+            JOIN users ON tasks.user_id = users.id
+
+            ORDER BY tasks.name ASC
+        """
+        result = client.execute(sql)
+        tasks = result.rows
+    
+        return render_template("pages/home.jinja", tasks=tasks)
 
 
 #-----------------------------------------------------------
@@ -55,47 +62,46 @@ def login_form():
 
 
 #-----------------------------------------------------------
-# Things page route - Show all the things, and new thing form
+# Tasks page route - Show all the tasks, and new task form
 #-----------------------------------------------------------
-@app.get("/things/")
-def show_all_things():
+@app.get("/tasks/")
+def show_all_tasks():
     with connect_db() as client:
-        # Get all the things from the DB
+        # Get all the tasks from the DB
         sql = """
-            SELECT things.id,
-                   things.name,
+            SELECT tasks.id,
+                   tasks.name,
                    users.name AS owner
 
-            FROM things
-            JOIN users ON things.user_id = users.id
+            FROM tasks
+            JOIN users ON tasks.user_id = users.id
 
-            ORDER BY things.name ASC
+            ORDER BY tasks.name ASC
         """
         result = client.execute(sql)
         things = result.rows
 
         # And show them on the page
-        return render_template("pages/things.jinja", things=things)
+        return render_template("pages/tasks.jinja", things=things)
 
 
 #-----------------------------------------------------------
-# Thing page route - Show details of a single thing
+# Task page route - Show details of a single task
 #-----------------------------------------------------------
-@app.get("/thing/<int:id>")
-def show_one_thing(id):
+@app.get("/task/<int:id>")
+def show_one_task(id):
     with connect_db() as client:
-        # Get the thing details from the DB, including the owner info
+        # Get the task details from the DB, including the owner info
         sql = """
-            SELECT things.id,
-                   things.name,
-                   things.price,
-                   things.user_id,
+            SELECT tasks.id,
+                   tasks.name,
+                   tasks.user_id,
                    users.name AS owner
 
-            FROM things
-            JOIN users ON things.user_id = users.id
+            FROM tasks
+            JOIN users ON tasks.user_id = users.id
 
-            WHERE things.id=?
+            WHERE tasks.id=?
         """
         values = [id]
         result = client.execute(sql, values)
@@ -104,7 +110,7 @@ def show_one_thing(id):
         if result.rows:
             # yes, so show it on the page
             thing = result.rows[0]
-            return render_template("pages/thing.jinja", thing=thing)
+            return render_template("pages/task.jinja", thing=thing)
 
         else:
             # No, so show error
@@ -112,32 +118,30 @@ def show_one_thing(id):
 
 
 #-----------------------------------------------------------
-# Route for adding a thing, using data posted from a form
+# Route for adding a task, using data posted from a form
 # - Restricted to logged in users
 #-----------------------------------------------------------
 @app.post("/add")
 @login_required
-def add_a_thing():
+def add_a_task():
     # Get the data from the form
     name  = request.form.get("name")
-    price = request.form.get("price")
 
     # Sanitise the inputs
     name = html.escape(name)
-    price = html.escape(price)
 
     # Get the user id from the session
     user_id = session["user_id"]
 
     with connect_db() as client:
-        # Add the thing to the DB
-        sql = "INSERT INTO things (name, price, user_id) VALUES (?, ?, ?)"
-        values = [name, price, user_id]
+        # Add the task to the DB
+        sql = "INSERT INTO tasks (name, user_id) VALUES (?, ?)"
+        values = [name, user_id]
         client.execute(sql, values)
 
         # Go back to the home page
-        flash(f"Thing '{name}' added", "success")
-        return redirect("/things")
+        flash(f"Task '{name}' added", "success")
+        return redirect("/")
 
 
 #-----------------------------------------------------------

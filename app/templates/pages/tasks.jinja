@@ -1,7 +1,7 @@
 {#=====================================================
   Things page
-  - List of things passed in as 'things' array
-  - Form for adding a new thing
+  - List of tasks passed in as 'tasks' array
+  - Form for adding a new task
 =====================================================#}
 
 {% extends 'pages/base.jinja' %}
@@ -9,24 +9,23 @@
 
 {% block title %}
 
-    Flask Demo - All Things
+    Flask Demo - All Tasks
 
 {% endblock %}
 
 
 {% block content %}
 
-    <h1>Things...</h1>
+    <h1>Tasks...</h1>
 
 
     <article>
 
-        <ul>
-            {% for thing in things %}
+        <ul>{% for task in tasks %}
 
                 <li>
-                    <a href="/thing/{{ thing.id }}">
-                        <strong>{{ thing.name }}</strong> - owned by {{ thing.owner }}
+                    <a href="/task/{{ task.id }}">
+                        <strong>{{ task.name }}</strong> - owned by {{ task.owner }}
                     </a>
                 </li>
 
@@ -45,7 +44,7 @@
 
         <article>
 
-            <h3>Add a New Thing...</h3>
+            <h3>Add a New Task...</h3>
 
             <form action="/add" method="POST">
 
@@ -56,15 +55,7 @@
                     required
                 >
 
-                <input
-                    type="number"
-                    name="price"
-                    min="0"
-                    placeholder="Price in dollars"
-                    required
-                >
-
-                <button>Add the Thing</button>
+                <button>Add the Task</button>
 
             </form>
 
