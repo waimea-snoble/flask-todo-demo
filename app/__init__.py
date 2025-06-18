@@ -254,3 +254,42 @@ def logout():
     flash("Logged out successfully", "success")
     return redirect("/")
 
+
+#-----------------------------------------------------------
+# Route for ticking a box
+#-----------------------------------------------------------
+@app.get("/complete/<int:id>")
+@login_required
+def complete_a_task(id):
+    # Get the user id from the session
+    user_id = session["user_id"]
+
+    with connect_db() as client:
+        # Delete the thing from the DB only if we own it
+        sql = "UPDATE tasks SET completed = 1 WHERE id=? AND user_id=?"
+        values = [id, user_id]
+        client.execute(sql, values)
+
+        # Go back to the home page
+        flash("task completed", "success")
+        return redirect("/")
+
+
+#-----------------------------------------------------------
+# Route for unticking a box
+#-----------------------------------------------------------
+@app.get("/incomplete/<int:id>")
+@login_required
+def incomplete_a_task(id):
+    # Get the user id from the session
+    user_id = session["user_id"]
+
+    with connect_db() as client:
+        # Delete the thing from the DB only if we own it
+        sql = "UPDATE tasks SET completed = 0 WHERE id=? AND user_id=?"
+        values = [id, user_id]
+        client.execute(sql, values)
+
+        # Go back to the home page
+        flash("task completed", "success")
+        return redirect("/")

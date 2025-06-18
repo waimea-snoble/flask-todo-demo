@@ -56,17 +56,34 @@
 
         <ul>{% for task in tasks %}
 
-                <li>
-                    <a href="/task/{{ task.id }}">
-                        <strong>{{ task.name }}</strong>
+        <p class="task">
+
+            <span class="priority">{{ task.priority }}</span>
+
+            <span class="name">{{ task.name}}</span>
+
+            <span class="status">
+                {% if task.completed %}
+
+                    <a href="/incomplete/{{ task.id }}">
+                        ☑
                     </a>
-                </li>
 
-            {% else %}
+                {% else %}
 
-                <p>None!</p>
+                    <a href="/complete/{{ task.id }}">
+                        ☐
+                    </a>
 
-            {% endfor %}
+                {% endif %}
+            </span>
+        </p>
+
+    {% else %}
+
+        <p>None!</p>
+
+        {% endfor %}
         </ul>
 
     </article>
@@ -82,6 +99,13 @@
                 type="text"
                  name="name"
                 placeholder="Name of new thing"
+                required
+            >
+
+            <input
+                type="text"
+                 name="priority"
+                placeholder="priority (1-5)"
                 required
             >
 
